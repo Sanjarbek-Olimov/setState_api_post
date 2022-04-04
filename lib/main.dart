@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:networking/pages/edit_create_page.dart';
 import 'package:networking/pages/home_page.dart';
 
 void main() {
@@ -19,7 +20,8 @@ class MyApp extends StatelessWidget {
       ),
       home: const HomePage(),
       routes: {
-        HomePage.id: (context) => const HomePage()
+        HomePage.id: (context) => const HomePage(),
+        EditCreatePage.id: (context) => EditCreatePage()
       },
     );
   }

@@ -1,17 +1,18 @@
 import 'dart:convert';
 import 'package:http/http.dart';
-import '../model/employee_model.dart';
-import '../model/employee_model.dart';
+import 'package:networking/model/post_model.dart';
 import 'log_service.dart';
 
 class Network {
   static bool isTester = true;
 
-  static String SERVER_DEVELOPMENT = "dummy.restapiexample.com";
-  static String SERVER_PRODUCTION = "dummy.restapiexample.com";
+  static String SERVER_DEVELOPMENT = "jsonplaceholder.typicode.com";
+  static String SERVER_PRODUCTION = "jsonplaceholder.typicode.com";
 
   static Map<String, String> getHeaders() {
-    Map<String,String> headers = {'Content-Type':'application/json; charset=UTF-8'};
+    Map<String, String> headers = {
+      'Content-Type': 'application/json; charset=UTF-8'
+    };
     return headers;
   }
 
@@ -22,59 +23,75 @@ class Network {
 
   /* Http Requests */
 
-  static Future<String?> GET(String api, Map<String, String> params) async {
-    var uri = Uri.http(getServer(), api, params); // http or https
+  static Future<String?> GET(String api, Map<String, dynamic> params) async {
+    var uri = Uri.https(getServer(), api, params); // http or https
     var response = await get(uri, headers: getHeaders());
     Log.d(response.body);
     if (response.statusCode == 200) return response.body;
-    if(response.statusCode == 429) return "Too many request";
+
     return null;
   }
 
-  static Future<String?> POST(String api, Map<String, String> params) async {
-    var uri = Uri.http(getServer(), api); // http or https
-    var response = await post(uri, headers: getHeaders(), body: jsonEncode(params));
+  static Future<String?> POST(String api, Map<String, dynamic> params) async {
+    var uri = Uri.https(getServer(), api); // http or https
+    var response =
+        await post(uri, headers: getHeaders(), body: jsonEncode(params));
     Log.d(response.body);
+
     if (response.statusCode == 200 || response.statusCode == 201) {
       return response.body;
     }
-    if(response.statusCode == 429) return "Too many request";
     return null;
   }
 
-  static Future<String?> PUT(String api, Map<String, String> params) async {
-    var uri = Uri.http(getServer(), api); // http or https
-    var response = await put(uri, headers: getHeaders(), body: jsonEncode(params));
+  static Future<String?> MULTIPART(
+      String api, String filePath, Map<String, String> params) async {
+    var uri = Uri.https(getServer(), api);
+    var request = MultipartRequest('POST', uri);
+
+    request.headers.addAll(getHeaders());
+    request.fields.addAll(params);
+    request.files.add(await MultipartFile.fromPath('picture', filePath));
+
+    var res = await request.send();
+    return res.reasonPhrase;
+  }
+
+  static Future<String?> PUT(String api, Map<String, dynamic> params) async {
+    var uri = Uri.https(getServer(), api); // http or https
+    var response =
+        await put(uri, headers: getHeaders(), body: jsonEncode(params));
+    Log.d(response.body);
+
+    if (response.statusCode == 200) return response.body;
+    return null;
+  }
+
+  static Future<String?> PATCH(String api, Map<String, dynamic> params) async {
+    var uri = Uri.https(getServer(), api); // http or https
+    var response =
+        await patch(uri, headers: getHeaders(), body: jsonEncode(params));
     Log.d(response.body);
     if (response.statusCode == 200) return response.body;
-    if(response.statusCode == 429) return "Too many request";
+
     return null;
   }
 
-  static Future<String?> PATCH(String api, Map<String, String> params) async {
-    var uri = Uri.http(getServer(), api); // http or https
-    var response = await patch(uri, headers: getHeaders(), body: jsonEncode(params));
-    Log.d(response.body);
-    if (response.statusCode == 200) return response.body;
-    if(response.statusCode == 429) return "Too many request";
-    return null;
-  }
-
-  static Future<String?> DEL(String api, Map<String, String> params) async {
-    var uri = Uri.http(getServer(), api, params); // http or https
+  static Future<String?> DELETE(String api, Map<String, dynamic> params) async {
+    var uri = Uri.https(getServer(), api, params); // http or https
     var response = await delete(uri, headers: getHeaders());
     Log.d(response.body);
     if (response.statusCode == 200) return response.body;
-    if(response.statusCode == 429) return "Too many request";
+
     return null;
   }
 
   /* Http Apis */
-  static String API_LIST = "/api/v1/employees";
-  static String API_ONE_ELEMENT = "/api/v1/employee/"; //{id}
-  static String API_CREATE = "/api/v1/create";
-  static String API_UPDATE = "/api/v1/update/"; //{id}
-  static String API_DELETE = "/api/v1/delete/"; //{id}
+  static String API_LIST = "/posts";
+  static String API_ONE = "/posts/"; //{id}
+  static String API_CREATE = "/posts";
+  static String API_UPDATE = "/posts/"; //{id}
+  static String API_DELETE = "/posts/"; //{id}
 
   /* Http Params */
   static Map<String, String> paramsEmpty() {
@@ -82,26 +99,26 @@ class Network {
     return params;
   }
 
-  static Map<String, String> paramsCreate(Employee employee) {
-    Map<String, String> params = {};
+  static Map<String, dynamic> paramsCreate(Post post) {
+    Map<String, dynamic> params = {};
     params.addAll({
-      'employee_name': employee.employeeName!,
-      'employee_salary': employee.employeeSalary.toString(),
-      'employee_age': employee.employeeAge.toString(),
-      'profile_image': employee.profileImage!,
+      'title': post.title!,
+      'body': post.body!,
+      'userId': post.userId,
     });
     return params;
   }
 
-  static Map<String, String> paramsUpdate(Employee employee) {
-    Map<String, String> params = {};
+  static Map<String, dynamic> paramsUpdate(Post post) {
+    Map<String, dynamic> params = {};
     params.addAll({
-      'id': employee.id.toString(),
-      'employee_name': employee.employeeName!,
-      'employee_salary': employee.employeeSalary.toString(),
-      'employee_age': employee.employeeAge.toString(),
-      'profile_image': employee.profileImage!,
+      'id': post.id,
+      'title': post.title!,
+      'body': post.body!,
+      'userId': post.userId,
     });
     return params;
   }
+
+/* Http parsing */
 }
